@@ -50,8 +50,90 @@ function makeOption(value, text) {
     return option;
 }
 
+function setNextIslands() {
+    islands.forEach(sIsland => {
+        sIsland.nextIslands = [];
+        islands.forEach(eIsland => {
+            if (sIsland.speciality === eIsland.shortage) {
+                sIsland.nextIslands.push(eIsland);
+            }
+        })
+    })
+}
+
+function samePath(path1, path2) {
+    return new Set(path1).size === new Set(path2).size &&
+        [...new Set(path1)].every(item => new Set(path2).has(item));
+}
+
+function getPaths() {
+    const allPath = [];
+    const res = [];
+    islands.forEach((island) => {
+        island.nextIslands.forEach((next) => {
+            const path = [];
+            path.push(island);
+            path.push(next);
+            allPath.push(path);
+        })
+    })
+    while (allPath.length > 0) {
+        const path = allPath.shift();
+        const now = path[path.length - 1];
+        now.nextIslands.forEach((next) => {
+            let flag1 = false;
+            for (let i = 0; i < path.length; i++) {
+                if (path[i] === next) {
+                    const resPath = path.slice(i);
+                    resPath.push(next);
+                    let flag2 = false;
+                    res.forEach((r) => {
+                        if (samePath(r, resPath)) {
+                            flag2 = true;
+                        }
+                    })
+                    if (!flag2) {
+                        res.push(resPath);
+                    }
+                    flag1 = true;
+                    break;
+                }
+            }
+            if (!flag1) {
+                const copy = [...path];
+                copy.push(next);
+                allPath.push(copy);
+            }
+        })
+    }
+    return res;
+}
+
 const verticalContainer = document.getElementById("vertical-container");
 verticalContainer.appendChild(makeHeadline());
 islands.forEach((island) => {
     verticalContainer.appendChild(makeContainer(island));
 })
+
+const getPathsButton = document.createElement("button");
+getPathsButton.textContent = "周回ルート検索";
+getPathsButton.onclick = () => {
+    resDiv.innerHTML = "";
+    setNextIslands();
+    const res = getPaths();
+    if (res.length === 0) {
+        const span = document.createElement("span");
+        span.innerHTML = "経路が見つかりませんでした";
+        resDiv.appendChild(span);
+    } else {
+        res.forEach((r) => {
+            const span = document.createElement("span");
+            span.innerHTML = r.map(island => island.name).join(" -> ");
+            resDiv.appendChild(span);
+        })
+    }
+}
+verticalContainer.appendChild(getPathsButton);
+const resDiv = document.createElement("div");
+resDiv.id = "resDiv";
+verticalContainer.appendChild(resDiv);

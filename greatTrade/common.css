@@ -8,6 +8,12 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    padding-bottom: 200px;
+}
+
+#resDiv {
+    display: flex;
+    flex-direction: column;
 }
 
 .container {
